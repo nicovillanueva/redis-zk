@@ -4,20 +4,18 @@ import os, shlex, subprocess, socket, fcntl, struct, uuid
 BASE_PATH="/redis"
 MASTER_PATH="{}/master".format(BASE_PATH)
 SLAVES_PATH="{}/slaves".format(BASE_PATH)
-PORTS_PATH="{}/portlocks".format(BASE_PATH)
 INTERFACE=os.environ.get("NET_IFACE") or 'eth0'
-
 IDENTIFIER=str(uuid.uuid4())
 IS_MASTER=False
 
 zk = KazooClient(hosts=os.environ.get("ZK_HOSTS") or '127.0.0.1:2181')
 
 def get_master_cmd():
-    c = "redis-server --port {}".format(os.environ.get("PORT0") or "6379")
+    c = "redis-server /etc/redis/redis.conf --port {}".format(os.environ.get("PORT0") or "6379")
     return shlex.split(c)
 
 def get_slave_cmd(master):
-    c = "redis-server --port {} --slaveof {}".format(os.environ.get("PORT0") or "6379", master)
+    c = "redis-server /etc/redis/redis.conf --port {} --slaveof {}".format(os.environ.get("PORT0") or "6379", master)
     return shlex.split(c)
 
 
