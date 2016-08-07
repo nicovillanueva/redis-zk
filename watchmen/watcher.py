@@ -62,6 +62,12 @@ def watch_for_slaves():
         if msg is not None and type(msg.get('data')) is bytes:
             m = msg.get('data').decode('utf-8').split()
             print("New slave!\nHere: {} {}".format(m[2], m[3]))
+            #
+            # TODO:
+            # - Update current slaves
+            # - Clean dead slaves
+            # - Test with multiple watchers
+            #
         time.sleep(interval)
     ps.close()
 

@@ -2,42 +2,42 @@ version: '2'
 
 services:
     r1:
-        image: redis-ha
+        build: redis/
         network_mode: "host"
         environment:
             - "NET_IFACE=wlan0"
             - "PORT0=28118"
 
     r2:
-        image: redis-ha
+        build: redis/
         network_mode: "host"
         environment:
             - "NET_IFACE=wlan0"
             - "PORT0=31131"
 
     r3:
-        image: redis-ha
+        build: redis/
         network_mode: "host"
         environment:
             - "NET_IFACE=wlan0"
             - "PORT0=16880"
 
     s1:
-        image: redis-ha-sentinel
+        build: sentinel/
         network_mode: "host"
         environment:
             - "NET_IFACE=wlan0"
             - "PORT0=19107"
 
     s2:
-        image: redis-ha-sentinel
+        build: sentinel/
         network_mode: "host"
         environment:
             - "NET_IFACE=wlan0"
             - "PORT0=5629"
 
     s3:
-        image: redis-ha-sentinel
+        build: sentinel/
         network_mode: "host"
         environment:
             - "NET_IFACE=wlan0"
