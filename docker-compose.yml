@@ -5,42 +5,42 @@ services:
         build: redis/
         network_mode: "host"
         environment:
-            - "NET_IFACE=wlan0"
+            # - "NET_IFACE=wlan0"
             - "PORT0=28118"
 
     r2:
         build: redis/
         network_mode: "host"
         environment:
-            - "NET_IFACE=wlan0"
+            # - "NET_IFACE=wlan0"
             - "PORT0=31131"
 
     r3:
         build: redis/
         network_mode: "host"
         environment:
-            - "NET_IFACE=wlan0"
+            # - "NET_IFACE=wlan0"
             - "PORT0=16880"
 
     s1:
         build: sentinel/
         network_mode: "host"
         environment:
-            - "NET_IFACE=wlan0"
+            # - "NET_IFACE=wlan0"
             - "PORT0=19107"
 
     s2:
         build: sentinel/
         network_mode: "host"
         environment:
-            - "NET_IFACE=wlan0"
+            # - "NET_IFACE=wlan0"
             - "PORT0=5629"
 
     s3:
         build: sentinel/
         network_mode: "host"
         environment:
-            - "NET_IFACE=wlan0"
+            # - "NET_IFACE=wlan0"
             - "PORT0=12226"
 
     zk:

@@ -2,20 +2,41 @@ from kazoo.client import KazooClient
 import os, shlex, subprocess, socket, fcntl, struct, uuid
 
 zk_hosts = os.environ.get("ZK_HOSTS") or '127.0.0.1:2181'
-base_path = "/redis"
-master_path = "{}/master".format(base_path)
-slaves_path = "{}/slaves".format(base_path)
-
 interface = os.environ.get("NET_IFACE") or 'eth0'
 port = os.environ.get("PORT0") or "6379"
-identifier = str(uuid.uuid4())
+
+uid = str(uuid.uuid4())
 is_master = False
 
 zk = KazooClient(hosts=zk_hosts)
 
+
+def setup_zk():
+    assert zk.connected
+    zk.ensure_path('/redis/members')
+    zk.ensure_path('/redis/roles/master')
+    zk.ensure_path('/redis/roles/slaves')
+
+
+def register(role):
+    assert zk.connected
+    s = "{} {}".format(get_ip_address(interface), port)
+    zk.create('/redis/members/' + uid)
+    zk.create('/redis/roles/' + role + '/' + uid)
+    zk.set('/redis/roles/' + role + '/' + uid, bytes(s, encoding='UTF-8'))
+
+
+def get_master_host():
+    assert zk.connected
+    master_id = zk.get_children('/redis/roles/master')[0]
+    master_host, _ = zk.get('/redis/roles/master/' + master_id)
+    return master_host
+
+
 def get_master_cmd():
     c = "redis-server /etc/redis/redis.conf --port {}".format(port)
     return shlex.split(c)
+
 
 def get_slave_cmd(master):
     c = "redis-server /etc/redis/redis.conf --port {} --slaveof {}".format(port, master)
@@ -31,41 +52,30 @@ def get_ip_address(ifname):
     )[20:24])
 
 
-
 zk.start()
-
-mpath = zk.ensure_path(master_path)
-my_path = ""
-if type(mpath) is str:
-    with zk.Lock(master_path, "{}-master".format(identifier)) as lock:
-        print("Setting {} as master".format(identifier))
-        s = "{} {}".format(get_ip_address(interface), port)
-        zk.set(master_path, bytes(s, encoding="UTF-8"))
+setup_zk()
+if len(zk.get_children('/redis/roles/master')) == 0:
+    with zk.Lock('/redis/roles/master', "{}-master".format(uid)) as lock:
+        print("Setting {} as master".format(uid))
+        register('master')
         is_master = True
-        my_path = master_path
         cmd = get_master_cmd()
-elif type(mpath) is bool:
-    print("Setting {} as slave".format(identifier))
-    my_path = slaves_path + "/" + identifier
-    zk.ensure_path(my_path)
-    s = "{} {}".format(get_ip_address(interface), port)
-    zk.set(my_path, bytes(s, encoding="UTF-8"))
-    value, stat = zk.get(master_path)
-    cmd = get_slave_cmd(value.decode("UTF-8"))
 else:
-    raise RuntimeError("What the hell")
+    print("Setting {} as slave".format(uid))
+    register('slaves')
+    mhost = get_master_host()
+    cmd = get_slave_cmd(mhost.decode("UTF-8"))
 
 zk.stop()
 
-#subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 try:
     print("Running: " + str(cmd))
     subprocess.call(cmd)
 except:
     print("Exiting...")
     zk.start()
-    #zk.delete(slaves_path + "/" + identifier)
-    zk.delete(my_path)
-    print("Deleted ZK entry")
+    zk.delete('/redis/members/' + uid)
+    zk.delete('/redis/' + role + '/' + uid)
+    print("Deleted ZK entries")
     zk.stop()
     print("Done.")

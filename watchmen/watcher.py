@@ -1,3 +1,6 @@
+#
+## DEPRECATED
+#
 from redis import Redis
 from kazoo.client import KazooClient
 from kazoo.exceptions import NoNodeError
