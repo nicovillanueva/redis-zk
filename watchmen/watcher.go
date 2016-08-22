@@ -7,28 +7,8 @@ import (
     "github.com/samuel/go-zookeeper/zk"
     "time"
     "strings"
+    "math/rand"
 )
-
-var members type map[string]string
-// if members == nil {
-//     members = make(map[string]string)
-// }
-
-type nodeReference struct {
-    Host string
-    Port string
-}
-
-func (nr nodeReference) GetAddress() string {
-    return nr.Host + " " + nr.Port
-}
-
-type WatchOptions struct {
-    Topic string
-    // In the caught message, where will the host/port be?
-    HostIndex int
-    PortIndex int
-}
 
 func watchTopic(watchOpts WatchOptions, redisOpts redis.Options, ch chan nodeReference) {
     c := redis.NewClient(&redisOpts)
@@ -48,7 +28,7 @@ func watchTopic(watchOpts WatchOptions, redisOpts redis.Options, ch chan nodeRef
             fmt.Println(err)
             return
         }
-        fmt.Println("Found event '%s' in topic '%s'", msg.Payload, msg.Channel)
+        fmt.Printf("Found event '%s' in topic '%s'\n", msg.Payload, msg.Channel)
         info := strings.Split(msg.Payload, " ")
         node := nodeReference{info[watchOpts.HostIndex], info[watchOpts.PortIndex]}
         ch <- node
@@ -56,57 +36,61 @@ func watchTopic(watchOpts WatchOptions, redisOpts redis.Options, ch chan nodeRef
 }
 
 func RecordKeeper(ch chan nodeReference, b Behavior, zkh []string) {
+    c := getZKConnection(zkh)
     for {
         nr := <- ch
-        b(nr, getZKConnection(zkh))
+        b(nr, c)
     }
-    // REVIEW: Reuse connection?
+    c.Close()
 }
 
-// What to do
-type Behavior func (nr nodeReference, conn *zk.Conn) bool
 
-func AddSlaveBehavior(nr nodeReference, conn *zk.Conn) bool {
-    defer conn.Close()
-    slaves, _, err := conn.Children("/redis/roles/slaves")
-    if err != nil {
-        fmt.Println("Could not get slaves list!")
-        return false
-    }
-    nextIndex := len(slaves)
-    _, err = conn.Create("/redis/roles/slaves/" + string(nextIndex), []byte(nr.GetAddress()), 0, zk.WorldACL(zk.PermAll))
-    if err != nil {
-        fmt.Println("Could not create slave!")
-        return false
-    } else {
-        fmt.Printf("Slave %s added\n", nr.GetAddress())
-        return true
+func getRandomSentinel(conn *zk.Conn) (nodeReference, error) {
+    delta := 0
+    for {
+        //child, _, err := conn.Children("/redis/roles/sentinels")
+        child, _, err := conn.Children("/redis/sentinels")
+        if err != nil {
+            return nodeReference{"", ""}, fmt.Errorf("Could not get sentinels list!")
+        }
+        if len(child) == 0 {
+            if delta == 30 {
+                return nodeReference{"", ""}, fmt.Errorf("No sentinels found in 30 seconds. Aborting.")
+            }
+            fmt.Println("No sentinels found yet. Waiting.")
+            time.Sleep(1 * time.Second)
+            delta += 1
+        } else {
+            c := child[rand.Intn(len(child))]
+            // d, _, err := conn.Get("/redis/roles/sentinels/" + c)
+            d, _, err := conn.Get("/redis/sentinels/" + c)
+            if err != nil {
+                return nodeReference{"", ""}, fmt.Errorf("Could not get sentinels!")
+            }
+            s := strings.Split(string(d), " ")
+            fmt.Println("Using Sentinel: " + string(d))
+            return nodeReference{s[0], s[1]}, nil
+        }
     }
 }
 
-func CleanSlaveBehavior(nr nodeReference, conn *zk.Conn) bool {
-    defer conn.Close()
-}
-
-func MasterUpdateBehavior(nr nodeReference, conn *zk.Conn) bool {
-    defer conn.Close()
-    _, err := conn.Set("/redis/roles/master", []byte(nr.GetAddress()), 0)
+/*func findMembers(zkh []string) {
+    c := getZKConnection(zkh)
+    defer c.Close()
+    child, _, err := c.Children("/redis/members")
     if err != nil {
-        fmt.Println("Could not set new master!")
+        // FIXME
         panic(err)
     }
-    return true
-}
-
-// func setUpZookeeper(zkHosts []string) {
-//     conn := getZKConnection(zkHosts)
-//     defer conn.Close()
-//     fmt.Println("got zk conn")
-//     CreatePath(conn, "/redis")
-//     go CreatePath(conn, "/redis/master")
-//     go CreatePath(conn, "/redis/slaves")
-//     CreatePath(conn, "/redis/sentinels")
-// }
+    for _, ch := range child {
+        n, _, err := c.Get("/redis/members/" + ch)
+        if err != nil {
+            // FIXME
+            panic(err)
+        }
+        fmt.Printf("%s -> %s\n", ch, string(n))
+    }
+}*/
 
 func getZKConnection(zkHosts []string) *zk.Conn {
     conn, _, err := zk.Connect(zkHosts, 10 * time.Second)
@@ -119,7 +103,7 @@ func getZKConnection(zkHosts []string) *zk.Conn {
     return conn
 }
 
-func CreatePath(conn *zk.Conn, p string)  {
+/*func CreatePath(conn *zk.Conn, p string)  {
     // TODO: Make recursive
     if e, _, err := conn.Exists(p) ; ! e && err == nil {
         _, err := conn.Create(p, nil, 0, zk.WorldACL(zk.PermAll))
@@ -133,53 +117,62 @@ func CreatePath(conn *zk.Conn, p string)  {
     } else {
         fmt.Printf("Path %s already exists\n", p)
     }
-}
+}*/
 
 func main() {
     fmt.Println("Starting")
 
-    rOpts := redis.Options {
+    /*rOpts := redis.Options {
         Addr: "192.168.0.20:19107",
         Password: "",
         DB: 0,
-    }
+    }*/
     wm := WatchOptions {
         Topic: "+switch-master",
         HostIndex: 3,
         PortIndex: 4,
     }
-    ws := WatchOptions {
-        Topic: "-odown",
+    /*ws := WatchOptions {
+        Topic: "+sdown",
         HostIndex: 2,
         PortIndex: 3,
-    }
+    }*/
 
-    zkh := os.Getenv("ZK_HOSTS")
-    if zkh == "" {
-        zkh = "localhost:2181"
+    var zkh []string
+    if os.Getenv("ZK_HOSTS") == "" {
+        zkh = []string{"localhost:2181"}
+    } else {
+        zkh = strings.Split(os.Getenv("ZK_HOSTS"), ",")
     }
 
     masterChan := make(chan nodeReference)
-    slaveChan := make(chan nodeReference)
+    //slaveChan := make(chan nodeReference)
     done := make(chan bool)
+
+    zkc := getZKConnection(zkh)
+    defer zkc.Close()
+    sentinel, err := getRandomSentinel(zkc)
+    if err != nil {
+        panic(err)
+    }
+
+    rOpts := redis.Options {
+        Addr: sentinel.GetDottedAddr(),
+        Password: "",
+        DB: 0,
+    }
+
+    //findMembers(zkh)
 
     //setUpZookeeper(zkh)
     go watchTopic(wm, rOpts, masterChan)
-    go watchTopic(ws, rOpts, slaveChan)
+    //go watchTopic(ws, rOpts, slaveChan)
 
     go RecordKeeper(masterChan, MasterUpdateBehavior, zkh)
-    go RecordKeeper(slaveChan, CleanSlaveBehavior, zkh)
+    //go RecordKeeper(slaveChan, CleanSlaveBehavior, zkh)
 
     // Just block
     if <- done {
         fmt.Println("done!")
     }
 }
-/*
-TODO:
-    - Watch -sdown channel! (They auto-add, unnecessary watch of +slave)
-    - Watch -sentinel
-    - Perform slaves cleanup/consistency check every N sec
-    - Own map referencing host/port:uid
-    - ?
-*/

@@ -5,43 +5,43 @@ services:
         build: redis/
         network_mode: "host"
         environment:
-            # - "NET_IFACE=wlan0"
-            - "PORT0=28118"
+            - "NET_IFACE=br-19665b0507e2"
+            - "PORT0=10011"
 
     r2:
         build: redis/
         network_mode: "host"
         environment:
-            # - "NET_IFACE=wlan0"
-            - "PORT0=31131"
+            - "NET_IFACE=br-19665b0507e2"
+            - "PORT0=10012"
 
     r3:
         build: redis/
         network_mode: "host"
         environment:
-            # - "NET_IFACE=wlan0"
-            - "PORT0=16880"
+            - "NET_IFACE=br-19665b0507e2"
+            - "PORT0=10013"
 
     s1:
         build: sentinel/
         network_mode: "host"
         environment:
-            # - "NET_IFACE=wlan0"
-            - "PORT0=19107"
+            - "NET_IFACE=br-19665b0507e2"
+            - "PORT0=10021"
 
     s2:
         build: sentinel/
         network_mode: "host"
         environment:
-            # - "NET_IFACE=wlan0"
-            - "PORT0=5629"
+            - "NET_IFACE=br-19665b0507e2"
+            - "PORT0=10022"
 
     s3:
         build: sentinel/
         network_mode: "host"
         environment:
-            # - "NET_IFACE=wlan0"
-            - "PORT0=12226"
+            - "NET_IFACE=br-19665b0507e2"
+            - "PORT0=10023"
 
     zk:
         image: mesoscloud/zookeeper:3.4.8-ubuntu
