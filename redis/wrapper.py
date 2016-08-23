@@ -2,6 +2,7 @@ from kazoo.client import KazooClient
 import os, shlex, subprocess, socket, fcntl, struct, uuid
 
 zk_hosts = os.environ.get("ZK_HOSTS") or '127.0.0.1:2181'
+bind_ip = os.environ.get("BIND_IP")
 interface = os.environ.get("NET_IFACE") or 'eth0'
 port = os.environ.get("PORT0") or "6379"
 
@@ -58,6 +59,8 @@ def get_slave_cmd(master):
 
 
 def get_ip_address(ifname):
+    if bind_ip is not None:
+        return bind_ip
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),

@@ -1,1 +1,3 @@
 venv
+watcher/main
+watcher/ca-certificates.crt

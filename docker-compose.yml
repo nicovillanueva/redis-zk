@@ -2,42 +2,48 @@ version: '2'
 
 services:
     r1:
-        build: redis/
+        # build: redis/
+        image: redis-zk
         network_mode: "host"
         environment:
             - "NET_IFACE=br-19665b0507e2"
             - "PORT0=10011"
 
     r2:
-        build: redis/
+        # build: redis/
+        image: redis-zk
         network_mode: "host"
         environment:
             - "NET_IFACE=br-19665b0507e2"
             - "PORT0=10012"
 
     r3:
-        build: redis/
+        # build: redis/
+        image: redis-zk
         network_mode: "host"
         environment:
             - "NET_IFACE=br-19665b0507e2"
             - "PORT0=10013"
 
     s1:
-        build: sentinel/
+        #build: sentinel/
+        image: sentinel-zk
         network_mode: "host"
         environment:
             - "NET_IFACE=br-19665b0507e2"
             - "PORT0=10021"
 
     s2:
-        build: sentinel/
+        #build: sentinel/
+        image: sentinel-zk
         network_mode: "host"
         environment:
             - "NET_IFACE=br-19665b0507e2"
             - "PORT0=10022"
 
     s3:
-        build: sentinel/
+        #build: sentinel/
+        image: sentinel-zk
         network_mode: "host"
         environment:
             - "NET_IFACE=br-19665b0507e2"

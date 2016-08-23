@@ -5,6 +5,7 @@ zk_hosts = os.environ.get("ZK_HOSTS") or '127.0.0.1:2181'
 sentinel_conf = "/etc/redis/sentinel.conf"
 sentinel_quorum = os.environ.get("SENTINEL_QUORUM") or 2
 
+bind_ip = os.environ.get("BIND_IP")
 interface = os.environ.get("NET_IFACE") or 'eth0'
 port = os.environ.get("PORT0") or '26379'
 
@@ -12,6 +13,8 @@ sid = str(uuid.uuid4())
 
 
 def get_ip_address(ifname):
+    if bind_ip is not None:
+        return bind_ip
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
