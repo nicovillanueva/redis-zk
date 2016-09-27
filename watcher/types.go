@@ -1,23 +1,24 @@
 package main
 
-//var Members type map[string]nodeReference
+import "gopkg.in/redis.v4"
 
-type nodeReference struct {
-    Host string
-    Port string
+type NodeReference struct {
+	Host string
+	Port string
 }
 
-func (nr nodeReference) GetAddress() string {
-    return nr.Host + " " + nr.Port
+func (nr NodeReference) GetAddress() string {
+	return nr.Host + " " + nr.Port
 }
 
-func (nr nodeReference) GetDottedAddr() string {
-    return nr.Host + ":" + nr.Port
+func (nr NodeReference) GetDottedAddr() string {
+	return nr.Host + ":" + nr.Port
 }
 
 type WatchOptions struct {
-    Topic string
-    // In the caught message, where will the host/port be?
-    HostIndex int
-    PortIndex int
+	Topic string
+	// In the caught message, where will the host/port be?
+	HostIndex int
+	PortIndex int
+	RedisOpts redis.Options
 }

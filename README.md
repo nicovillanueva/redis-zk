@@ -60,5 +60,14 @@ In order to get the host/port of a Sentinel, you should first query Zookeeper. O
 ## TODO
 - Wrappers: print -> logger
 - Watcher: Watch -sentinel (sentinel cleanup)
-- Readme
+- Watcher: Webservice json serialize
+- Watcher: /status
+    - list sentinels
+    - show master
+    - redis info (keys, replication status)
+- Readme: Watcher web service
 - Sentinel: Configure timeout when checking for masters
+- Multiple masters support
+    - Sentinel: wrapper.py:31,59
+    - Redis: wrapper.py:76
+    - ZK: List masters -> /redis/masters/<master_name>
