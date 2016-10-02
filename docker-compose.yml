@@ -6,7 +6,7 @@ services:
         #image: redis-zk
         network_mode: "host"
         environment:
-            - "NET_IFACE=br-19665b0507e2"
+            - "NET_IFACE=wlan0"
             - "PORT0=10011"
 
     r2:
@@ -14,7 +14,7 @@ services:
         #image: redis-zk
         network_mode: "host"
         environment:
-            - "NET_IFACE=br-19665b0507e2"
+            - "NET_IFACE=wlan0"
             - "PORT0=10012"
 
     r3:
@@ -22,7 +22,7 @@ services:
         #image: redis-zk
         network_mode: "host"
         environment:
-            - "NET_IFACE=br-19665b0507e2"
+            - "NET_IFACE=wlan0"
             - "PORT0=10013"
 
     s1:
@@ -30,7 +30,7 @@ services:
         #image: sentinel-zk
         network_mode: "host"
         environment:
-            - "NET_IFACE=br-19665b0507e2"
+            - "NET_IFACE=wlan0"
             - "PORT0=10021"
 
     s2:
@@ -38,7 +38,7 @@ services:
         #image: sentinel-zk
         network_mode: "host"
         environment:
-            - "NET_IFACE=br-19665b0507e2"
+            - "NET_IFACE=wlan0"
             - "PORT0=10022"
 
     s3:
@@ -46,7 +46,7 @@ services:
         #image: sentinel-zk
         network_mode: "host"
         environment:
-            - "NET_IFACE=br-19665b0507e2"
+            - "NET_IFACE=wlan0"
             - "PORT0=10023"
 
     zk:
