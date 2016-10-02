@@ -1,8 +1,3 @@
-/**
-The Watcher waits for messages in a given NodeReference channel
-Once it gets a NR, sends it through the channel, the Keeper receives it, and fires a Behavior
-*/
-
 package main
 
 import (
@@ -11,6 +6,9 @@ import (
 	"strings"
 )
 
+// WatchTopic waits for messages in a given NodeReference channel
+// Once it gets a NR, sends it through the channel, the Keeper receives it
+// and fires a Behavior (configured within the WatchOptions)
 func WatchTopic(watchOpts WatchOptions, ch chan NodeReference) {
 	c := redis.NewClient(&watchOpts.RedisOpts)
 	ps, err := c.Subscribe(watchOpts.Topic)

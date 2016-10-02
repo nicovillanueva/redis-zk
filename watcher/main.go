@@ -37,15 +37,9 @@ func main() {
 		},
 	}
 
-	// TODO: Move to Watcher
 	go WatchTopic(wm, masterChan)
 
 	go keeper.RunBehavior(masterChan, MasterUpdateBehavior)
 
-	// Just block
-	//done := make(chan bool)
-	//if <-done {
-	//	fmt.Println("done!")
-	//}
 	serve()
 }
