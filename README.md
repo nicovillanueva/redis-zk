@@ -50,7 +50,7 @@ You may configure Redis and the Sentinel themselves by modifying the `redis.conf
 
 ## Implementation
 First and foremost, you need to use a Redis client which supports Sentinels. Most libraries do, such as Jedis. This library will connect to the Sentinel, and from there, connect to the Master.  
-In order to get the host/port of a Sentinel, you should first query Zookeeper. On the path `/redis/sentinels` are listed all of the current Sentinels. You could for example list them all, and pick one at random. Then do a get on that zknode and you'll get the -space-separated- host and port of a Sentinel.
+In order to get the host/port of a Sentinel, the Watcher implements a simple webservice. If you query it on `:8080/sentinels` you'll get a comma-separated list of Sentinels. You should split it, and build your Sentinel list. TODO: Return a JSON
 
 ## Paths in ZK
 - `/redis`: Root, just that. It's empty
@@ -65,7 +65,6 @@ In order to get the host/port of a Sentinel, you should first query Zookeeper. O
     - list sentinels
     - show master
     - redis info (keys, replication status)
-- Readme: Watcher web service
 - Sentinel: Configure timeout when checking for masters
 - Multiple masters support
     - Sentinel: wrapper.py:31,59

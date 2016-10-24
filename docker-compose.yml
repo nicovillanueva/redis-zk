@@ -2,48 +2,48 @@ version: '2'
 
 services:
     r1:
-        build: redis/
-        #image: redis-zk
+        #build: redis/
+        image: lapp-dvde004:5000/redis-zk:0.0.2
         network_mode: "host"
         environment:
             - "NET_IFACE=docker0"
             - "PORT0=10011"
 
     r2:
-        build: redis/
-        #image: redis-zk
+        #build: redis/
+        image: lapp-dvde004:5000/redis-zk:0.0.2
         network_mode: "host"
         environment:
             - "NET_IFACE=docker0"
             - "PORT0=10012"
 
     r3:
-        build: redis/
-        #image: redis-zk
+        #build: redis/
+        image: lapp-dvde004:5000/redis-zk:0.0.2
         network_mode: "host"
         environment:
             - "NET_IFACE=docker0"
             - "PORT0=10013"
 
     s1:
-        build: sentinel/
-        #image: sentinel-zk
+        #build: sentinel/
+        image: lapp-dvde004:5000/sentinel-zk:0.0.2
         network_mode: "host"
         environment:
             - "NET_IFACE=docker0"
             - "PORT0=10021"
 
     s2:
-        build: sentinel/
-        #image: sentinel-zk
+        #build: sentinel/
+        image: lapp-dvde004:5000/sentinel-zk:0.0.2
         network_mode: "host"
         environment:
             - "NET_IFACE=docker0"
             - "PORT0=10022"
 
     s3:
-        build: sentinel/
-        #image: sentinel-zk
+        #build: sentinel/
+        image: lapp-dvde004:5000/sentinel-zk:0.0.2
         network_mode: "host"
         environment:
             - "NET_IFACE=docker0"
